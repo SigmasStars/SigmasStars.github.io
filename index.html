@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Покупка звёзд</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(180deg,#eaf2ff,#fff);
+      margin:0; padding:20px; text-align:center;}
+    h1 { color:#1a1a1a; }
+    .cards { display:flex; flex-direction:column; gap:12px; margin-top:20px;}
+    .card { padding:15px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      cursor:pointer; transition:transform .2s, box-shadow .2s; background:#fff;}
+    .card:hover { transform:scale(1.03); box-shadow:0 4px 12px rgba(0,0,0,0.15);}
+    .card.selected { background:#0078ff; color:white;}
+    .emoji { font-size:28px; margin-right:8px;}
+    #confirm { margin-top:20px; padding:14px 28px; border:none; border-radius:10px;
+      font-size:16px; background:#0078ff; color:#fff; cursor:pointer;}
+    #confirm:disabled {opacity:0.5; cursor:not-allowed;}
+    #progress { display:none; margin-top:20px; height:8px; width:100%; background:#ddd; border-radius:4px; overflow:hidden;}
+    #progress div {height:100%;width:0;background:#0078ff;animation:progressAnim 2s linear forwards;}
+    @keyframes progressAnim {from{width:0;}to{width:100%;}}
+    #done { display:none; margin-top:30px; font-size:18px; color:#0078ff;}
+  </style>
+</head>
+<body>
+  <h1>Купить звёзды</h1>
+  <p>Выберите пакет звёзд 💫</p>
+  <div class="cards" id="packs">
+    <div class="card" data-val="100"><span class="emoji">⭐</span>100 звёзд — 100₽</div>
+    <div class="card" data-val="500"><span class="emoji">🌟</span>500 звёзд — 450₽</div>
+    <div class="card" data-val="1000"><span class="emoji">💫</span>1000 звёзд — 800₽</div>
+    <div class="card" data-val="5000"><span class="emoji">💎</span>5000 звёзд — 3500₽</div>
+  </div>
+  <button id="confirm" disabled>Подтвердить</button>
+  <div id="progress"><div></div></div>
+  <div id="done">✅ Спасибо за покупку! Ожидайте подтверждения.</div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    let selected = null;
+    const cards = document.querySelectorAll('.card');
+    const btn = document.getElementById('confirm');
+    const progress = document.getElementById('progress');
+    const done = document.getElementById('done');
+
+    cards.forEach(card=>{
+      card.addEventListener('click',()=>{
+        cards.forEach(c=>c.classList.remove('selected'));
+        card.classList.add('selected');
+        selected = card.getAttribute('data-val');
+        btn.disabled = false;
+      });
+    });
+
+    btn.addEventListener('click',()=>{
+      if(!selected) return;
+      btn.disabled = true;
+      progress.style.display='block';
+      progress.firstElementChild.style.width='0';
+      progress.firstElementChild.offsetHeight;
+      progress.firstElementChild.style.animation='progressAnim 2s linear forwards';
+      setTimeout(()=>{
+        const data={amount:selected};
+        tg.sendData(JSON.stringify(data));
+        progress.style.display='none';
+        done.style.display='block';
+        setTimeout(()=>tg.close(),2000);
+      },2000);
+    });
+
+    tg.expand();
+  </script>
+</body>
+</html>
